@@ -1,15 +1,21 @@
 ---
 # tasks file for kerberos
-- name: install haveged needed to entropy incresing
+- name: download haveged needed to entropy increasing
   get_url:
     url: https://slackware.uk/slackware/slackware64-current/slackware64/a/haveged-1.9.14-x86_64-3.txz
     dest: ./haveged.txz
   delegate_to: 127.0.0.1
 
-- name: unzip the haveged.txz to get the tar
-  command: xz ./haveged.txz
+- name: download rng-tools needed to entropy increasing
+  get_url:
+    url: https://sourceforge.net/projects/gkernel/files/rng-tools/5/rng-tools-5.tar.gz/download
+    dest: ./rng.tar.gz
   delegate_to: 127.0.0.1
-  ignore_errors: yes
+
+- name: unzip the haveged.txz to get the tar
+  command: xz -d ./haveged.txz
+  delegate_to: 127.0.0.1
+  ignore_errors: true
 
 - name: copy haveged.tar to remote machine
   copy:
@@ -19,20 +25,69 @@
     group: root
     mode: 0644
 
-- name: unzip the tar
+- name: copy rng.tar to remote machine
+  copy:
+    src: ./rng.tar.gz
+    dest: /root/rng.tar.gz
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create the haveged directory if it does not exist
+  file:
+    path: /root/haveged
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Create the rng directory if it does not exist
+  file:
+    path: /root/rng
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: unzip haveged tar
   unarchive:
     src: /root/haveged.tar
-    dest: /root/
+    dest: /root/haveged
     remote_src: true
+
+- name: unzip rng tar
+  unarchive:
+    src: /root/rng.tar.gz
+    dest: /root/rng
+    remote_src: true
+
+- name: copy the haveged sbin into the right directory
+  copy:
+    src: /root/haveged/sbin/haveged
+    dest:  /sbin/haveged
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+
 
 - name: copy the haveged script into the right directory
   copy:
-    src: /root/etc/rc.d/rc.haveged.new 
+    src: /root/haveged/etc/rc.d/rc.haveged.new 
     dest:  /etc/rc.d/rc.haveged
     owner: root
     group: root
     mode: 0755
     remote_src: true
+
+- name: configure the rngd source
+  command: chdir=/root/rng/rng-tools-5/ ./configure
+
+- name: make the rngd source
+  command: chdir=/root/rng/rng-tools-5/ make
+
+- name: make install the rngd source
+  command: chdir=/root/rng/rng-tools-5/ make install
 
 - name: add the haveged startup script to rc.M to have more entropy on startup
   lineinfile:
@@ -44,7 +99,9 @@
     - { regexp: '^  /etc/rc.d/rc.haveged start', line: '/etc/rc.d/rc.haveged start; fi;' }
 
 - name: trigger the haveged script
-  command: /etc/rc.d/rc.haveged start
+  command: /etc/rc.d/rc.haveged restart
+  ignore_errors: true
+
 
 - name: set kerberosversion
   set_fact:
@@ -115,11 +172,15 @@
     group: root
     mode: 0755
 
-#- name: start krb5 service
-#  command: /etc/rc.d/rc.krb5kdc start
+- name: start krb5 service
+  command: /etc/rc.d/rc.krb5kdc restart
 
 - name: trigger the haveged script restart
   command: /etc/rc.d/rc.haveged restart
+  ignore_errors: true
 
-#- name: initialise the database
-#  command: kdb5_util create -s
+- name: trigger rngd to increase random entropy availability
+  command: rngd
+
+- name: initialise the database
+  command: kdb5_util create -s -P {{kerberos_password}} 

@@ -2,6 +2,8 @@
 
 Ansible playbook to install kerberos on slackware (educational purposes)
 
+I increased the memory of slackware to 512 MB
+
 You must have this installed on the host:
 * ansible
 * sshpass
@@ -48,9 +50,20 @@ ansible-playbook -i inventory --limit kerberos main.yml -K
 An ansible galaxy role was generated to handle installation and configuration
 
 
-From https://karellen.blogspot.com/2014/03/mit-kerberos-for-slackware.html I found that the configure should have some parameters
+The steps taken are from: https://karellen.blogspot.com/2014/03/mit-kerberos-for-slackware.html
 
-It installs haveged to have more entropy for randomize data in kerberos
+It installs haveged and rng-tools to have more entropy for randomize data in kerberos
 
 You can see the entropy with this command:
 cat /proc/sys/kernel/random/entropy_avail
+
+
+## Obtain a ticket from client
+
+Have this installed:
+sudo apt-get install krb5-user
+
+
+Configure /etc/krb5.conf
+
+kinit PRINCIPALNAME
