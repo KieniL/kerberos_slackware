@@ -1,5 +1,50 @@
 ---
 # tasks file for kerberos
+- name: install haveged needed to entropy incresing
+  get_url:
+    url: https://slackware.uk/slackware/slackware64-current/slackware64/a/haveged-1.9.14-x86_64-3.txz
+    dest: ./haveged.txz
+  delegate_to: 127.0.0.1
+
+- name: unzip the haveged.txz to get the tar
+  command: xz ./haveged.txz
+  delegate_to: 127.0.0.1
+  ignore_errors: yes
+
+- name: copy haveged.tar to remote machine
+  copy:
+    src: ./haveged.tar
+    dest: /root/haveged.tar
+    owner: root
+    group: root
+    mode: 0644
+
+- name: unzip the tar
+  unarchive:
+    src: /root/haveged.tar
+    dest: /root/
+    remote_src: true
+
+- name: copy the haveged script into the right directory
+  copy:
+    src: /root/etc/rc.d/rc.haveged.new 
+    dest:  /etc/rc.d/rc.haveged
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+
+- name: add the haveged startup script to rc.M to have more entropy on startup
+  lineinfile:
+    dest: /etc/rc.d/rc.M
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^if [ -x /etc/rc.d/rc.haveged ]; then', line: 'if [ -x /etc/rc.d/rc.haveged ]; then' }
+    - { regexp: '^  /etc/rc.d/rc.haveged start', line: '/etc/rc.d/rc.haveged start; fi;' }
+
+- name: trigger the haveged script
+  command: /etc/rc.d/rc.haveged start
 
 - name: set kerberosversion
   set_fact:
@@ -62,6 +107,19 @@
     owner: root
     group: root
 
+- name: copy the rc.krb5kdc file for service execution
+  copy:
+    src: "{{ role_path }}/files/rc.krb5kdc"
+    dest: /etc/rc.d/rc.krb5kdc
+    owner: root
+    group: root
+    mode: 0755
 
-- name: initialise the database
-  command: kdb5_util create -s
+#- name: start krb5 service
+#  command: /etc/rc.d/rc.krb5kdc start
+
+- name: trigger the haveged script restart
+  command: /etc/rc.d/rc.haveged restart
+
+#- name: initialise the database
+#  command: kdb5_util create -s

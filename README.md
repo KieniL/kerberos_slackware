@@ -5,6 +5,8 @@ Ansible playbook to install kerberos on slackware (educational purposes)
 You must have this installed on the host:
 * ansible
 * sshpass
+* tar
+* xz
 
 For the ssh connection an additional parameter is needed to negotiate the connection:
 -oKexAlgorithms=+diffie-hellman-group1-sha1
@@ -35,13 +37,20 @@ make install
 there are two hosts (kerberos and ssh which can contain multiple servers)
 both hosts are grouped to a slackware group to only have to set the variables once
 # Usage
-ansible-playbook -i inventory main.yml
+ansible-playbook -i inventory main.yml -K 
 
 to only run the playbooks against a specific hostgroup:
-ansible-playbook -i inventory --limit ssh main.yml
-ansible-playbook -i inventory --limit kerberos main.yml
+ansible-playbook -i inventory --limit ssh main.yml -K 
+ansible-playbook -i inventory --limit kerberos main.yml -K 
+
+-K means the sudo password on the control machine
 # Kerberos
 An ansible galaxy role was generated to handle installation and configuration
 
 
 From https://karellen.blogspot.com/2014/03/mit-kerberos-for-slackware.html I found that the configure should have some parameters
+
+It installs haveged to have more entropy for randomize data in kerberos
+
+You can see the entropy with this command:
+cat /proc/sys/kernel/random/entropy_avail

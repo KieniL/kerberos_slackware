@@ -1,0 +1,37 @@
+#!/bin/bash
+bin="/usr/sbin/krb5kdc"
+pid_file="/var/run/krb5kdc.pid"
+
+function start_krb5kdc {
+  echo "Starting krb5kdc: $bin -P $pid_file"
+  $bin -P $pid_file
+}
+
+function stop_krb5kdc {
+  if [[ -f $pid_file ]]; then
+    kill -15 `cat $pid_file`
+    sleep 1
+    if [[ `ps -ef | grep "$bin" | grep \`cat $pid_file\`` == "" ]]; then
+      rm $pid_file
+    else
+      kill -9 `cat $pid_file`
+      rm $pid_file
+    fi
+  fi
+}
+
+case "$1" in
+  'start')
+    start_krb5kdc
+    ;;
+  'stop')
+    stop_krb5kdc
+    ;;
+  'restart')
+    stop_krb5kdc
+    start_krb5kdc
+    ;;
+  *)
+    echo "usage $0 start|stop|restart"
+    ;;
+esac
