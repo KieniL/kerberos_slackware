@@ -1,12 +1,12 @@
 [slackware:children]
 kerberos
-ssh
+postgres
 
 [kerberos]
 kerb01 ansible_host=192.168.56.21
 
-[ssh]
-ssh01 ansible_host=192.168.56.18
+[postgres]
+postgres01 ansible_host=192.168.56.18
 
 [slackware:vars]
 ansible_python_interpreter=/usr/local/bin/python3.7

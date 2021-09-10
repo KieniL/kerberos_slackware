@@ -1,0 +1,44 @@
+---
+# tasks file for postgresql
+- name: download postgres
+  get_url:
+    url: https://ftp.postgresql.org/pub/source/v9.4.5/postgresql-9.4.5.tar.bz2
+    dest: ./postgres.tar.bz2
+  delegate_to: 127.0.0.1
+
+- name: extract the postgres.tar
+  command: bzip2 -d ./postgres.tar.bz2
+  delegate_to: 127.0.0.1
+  ignore_errors: true
+
+- name: copy postgres.tar to remote machine
+  copy:
+    src: ./postgres.tar
+    dest: /root/postgres.tar
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create the postgres directory if it does not exist
+  file:
+    path: /root/postgres
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: unzip postgres tar
+  unarchive:
+    src: /root/postgres.tar
+    dest: /root/postgres
+    remote_src: true
+
+
+- name: configure the postgres source
+  command: chdir=/root/postgres/postgresql-9.4.5/ ./configure --without-readline
+
+- name: make the postgres source
+  command: chdir=/root/postgres/postgresql-9.4.5/ make
+
+- name: make install the postgres source
+  command: chdir=/root/postgres/postgresql-9.4.5/ make install

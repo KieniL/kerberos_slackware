@@ -36,14 +36,14 @@ make install
 </code>
 
 # Structure of the inventory
-there are two hosts (kerberos and ssh which can contain multiple servers)
+there are two hosts (kerberos and postgres which can contain multiple servers)
 both hosts are grouped to a slackware group to only have to set the variables once
 # Usage
-ansible-playbook -i inventory main.yml -K 
+ansible-playbook -i inventory main.yml
 
 to only run the playbooks against a specific hostgroup:
-ansible-playbook -i inventory --limit ssh main.yml
-ansible-playbook -i inventory --limit kerberos main.yml -K 
+ansible-playbook -i inventory --limit postgres main.yml
+ansible-playbook -i inventory --limit kerberos main.yml
 
 -K means the sudo password on the control machine
 # Kerberos
