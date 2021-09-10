@@ -19,6 +19,11 @@
     group: root
     mode: 0644
 
+- name: copy the postgres file
+  copy:
+    src: "{{ role_path }}/files/postgres"
+    dest: /usr/local/share/pwfile
+
 - name: Create the postgres directory if it does not exist
   file:
     path: /root/postgres
@@ -33,12 +38,72 @@
     dest: /root/postgres
     remote_src: true
 
+- name: Ensure group "postgres" exists
+  group:
+    name: postgres
+    gid: 209 # recommended from slackbuild
+    state: present
+
+- name: Create Postgres user
+  user:
+    name: postgres
+    comment: postgres serviceuser
+    uid: 209 # recommended from slackbuild
+    group: postgres
+    home: /var/lib/pgsql
 
 - name: configure the postgres source
-  command: chdir=/root/postgres/postgresql-9.4.5/ ./configure --without-readline
+  command: chdir=/root/postgres/postgresql-9.4.5/ ./configure --without-readline --with-gssapi
 
 - name: make the postgres source
   command: chdir=/root/postgres/postgresql-9.4.5/ make
 
 - name: make install the postgres source
   command: chdir=/root/postgres/postgresql-9.4.5/ make install
+
+- name: copy the postgres binaries into /usr/local/bin
+  copy:
+    src: /usr/local/pgsql/bin/
+    dest: /usr/local/bin/
+    mode: 0755
+    remote_src: true
+    directory_mode: true
+
+
+
+- name: copy the pgsql share files into /usr/local/share/
+  copy:
+    src: /usr/local/pgsql/share/
+    dest: /usr/local/share/
+    mode: 0755
+    remote_src: true
+    directory_mode: true
+
+- name: copy the pgsql libfiles into local lib
+  copy:
+    src: /usr/local/pgsql/lib/
+    dest: /usr/local/lib/
+    mode: 0755
+    remote_src: true
+    directory_mode: true
+    
+- name: set permission on /usr/local/pgsql to postgres
+  file:
+    dest: /usr/local/pgsql
+    owner: postgres
+    group: postgres 
+    mode: 0755
+    recurse: yes
+
+- name: initialize the database
+  command: chdir=/home su postgres -c "initdb -D /var/lib/pgsql/9.4/data --locale=en_US.UTF-8 -A md5 --pwfile=/usr/local/share/pwfile"
+  ignore_errors: true
+
+- name: start the database
+  command: chdir=/home su postgres -c "pg_ctl start -D /var/lib/pgsql/9.4/data "
+
+- name: add gssauthentiction to pg
+  lineinfile:
+    dest: /var/lib/pgsql/9.4/data/pg_hba.conf
+    regexp: "^#host	all		all		0.0.0.0/0		gss"
+    line: "host	all		all		0.0.0.0/0		gss"
