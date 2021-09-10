@@ -57,13 +57,31 @@ It installs haveged and rng-tools to have more entropy for randomize data in ker
 You can see the entropy with this command:
 cat /proc/sys/kernel/random/entropy_avail
 
+You need to generate a principal in kerberos db:
 
+kadmin.local
+
+To have a policy in place use this command:
+add_policy -maxlife 30days -minlife 1days -minlength 8 default
+
+then
+addprinc PRINCIPALNAME
+(you need to set a password)
+
+with list_principals you can see them
 ## Obtain a ticket from client
 
 Have this installed:
 sudo apt-get install krb5-user
 
-
 Configure /etc/krb5.conf
 
 kinit PRINCIPALNAME
+
+Then use the password from the creation
+
+with klist you can see the credentials
+
+Remove the ticket with kdestroy
+
+Renew the ticket with kinit PRINCIPALNAME -R
