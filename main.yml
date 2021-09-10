@@ -1,5 +1,9 @@
 - hosts: kerberos
   tags: kerberos
-  become: true
   roles:
     - kerberos
+
+- hosts: ssh
+  tags: ssh
+  roles:
+    - ssh

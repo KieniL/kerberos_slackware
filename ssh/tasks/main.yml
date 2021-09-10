@@ -1,0 +1,19 @@
+---
+# tasks file for ssh
+
+- name: switch to KerberosAuthentication
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^#KerberosAuthentication no"
+    line: "KerberosAuthentication yes"
+
+- name: enable KerberosTicketCleanUp
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^#KerberosTicketCleanup yes"
+    line: "KerberosTicketCleanup yes"
+
+- name: restart ssh
+  service:
+    name: ssh
+    state: restarted

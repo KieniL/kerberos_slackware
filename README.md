@@ -42,7 +42,7 @@ both hosts are grouped to a slackware group to only have to set the variables on
 ansible-playbook -i inventory main.yml -K 
 
 to only run the playbooks against a specific hostgroup:
-ansible-playbook -i inventory --limit ssh main.yml -K 
+ansible-playbook -i inventory --limit ssh main.yml
 ansible-playbook -i inventory --limit kerberos main.yml -K 
 
 -K means the sudo password on the control machine
@@ -85,3 +85,9 @@ with klist you can see the credentials
 Remove the ticket with kdestroy
 
 Renew the ticket with kinit PRINCIPALNAME -R
+
+
+# ToDo:
+* Use Kerberos from ssh
+* add ssh to principal
+* ssh into other host with pw (ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 IP)
