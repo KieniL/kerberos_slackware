@@ -1,2 +1,45 @@
 ---
 # tasks file for kerberos
+
+- name: set kerberosversion
+  set_fact:
+    krbversion: 1.11.6
+
+- name: download kerberos from web mit edu to control machine (remote does not have internet)
+  get_url:
+    url: https://web.mit.edu/kerberos/dist/krb5/1.11/krb5-{{krbversion}}-signed.tar
+    dest: ./kerberos.tar
+  delegate_to: 127.0.0.1
+
+- name: copy kerberos.tar to remote machine
+  copy:
+    src: ./kerberos.tar
+    dest: /root/kerberos.tar
+    owner: root
+    group: root
+    mode: 0644
+
+- name: unzip the kerberos signed tar to get .tar.gz
+  unarchive:
+    src: /root/kerberos.tar
+    dest: /root/
+    remote_src: true
+
+- name: unzip the krb5.tar.gz to get the source
+  unarchive:
+    src: /root/krb5-{{krbversion}}.tar.gz
+    dest: /root/
+    remote_src: true
+
+- name: configure the krb source
+  command: chdir=/root/krb5-{{krbversion}}/src/ ./configure
+
+- name: make the krb source
+  command: chdir=/root/krb5-{{krbversion}}/src/ make
+
+- name: make install the krb source
+  command: chdir=/root/krb5-{{krbversion}}/src/ make install
+
+
+
+    

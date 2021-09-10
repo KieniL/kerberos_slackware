@@ -28,6 +28,9 @@ make
 make install
 </code>
 
+# Usage
+ansible-playbook -i inventory main.yml
+
 
 # Kerberos
 An ansible galaxy role was generated to handle installation and configuration
