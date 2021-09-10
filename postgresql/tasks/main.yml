@@ -1,5 +1,90 @@
 ---
 # tasks file for postgresql
+- name: download bison needed for postgres with gssapi
+  get_url:
+    url: https://mirrors.slackware.com/slackware/slackware-14.2/source/d/bison/bison-3.0.4.tar.xz
+    dest: ./bison.tar.xz
+  delegate_to: 127.0.0.1
+
+- name: download flex needed for postgres with gssapi
+  get_url:
+    url: https://mirrors.slackware.com/slackware/slackware-14.2/source/d/flex/flex-2.6.0.tar.xz
+    dest: ./flex.tar.xz
+  delegate_to: 127.0.0.1
+
+
+- name: unzip the bison.tar.xz to get the tar
+  command: xz -d ./bison.tar.xz
+  delegate_to: 127.0.0.1
+  ignore_errors: true
+
+- name: unzip the flex.tar.xz to get the tar
+  command: xz -d ./flex.tar.xz
+  delegate_to: 127.0.0.1
+  ignore_errors: true
+
+- name: copy bison.tar to remote machine
+  copy:
+    src: ./bison.tar
+    dest: /root/bison.tar
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy flex.tar to remote machine
+  copy:
+    src: ./flex.tar
+    dest: /root/flex.tar
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create the bison directory if it does not exist
+  file:
+    path: /root/bison
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Create the flex directory if it does not exist
+  file:
+    path: /root/flex
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: unzip bison tar
+  unarchive:
+    src: /root/bison.tar
+    dest: /root/bison
+    remote_src: true
+
+- name: unzip flex tar
+  unarchive:
+    src: /root/flex.tar
+    dest: /root/flex
+    remote_src: true
+
+- name: configure the bison source
+  command: chdir=/root/bison/bison-3.0.4/ ./configure M4='usr/bin/m4'
+
+- name: make the bison source
+  command: chdir=/root/bison/bison-3.0.4/ make
+
+- name: make install the bison source
+  command: chdir=/root/bison/bison-3.0.4/ make install
+
+- name: configure the flex source
+  command: chdir=/root/flex/flex-2.6.0/ ./configure
+
+- name: make the flex source
+  command: chdir=/root/flex/flex-2.6.0/ make
+
+- name: make install the flex source
+  command: chdir=/root/flex/flex-2.6.0/ make install
+
 - name: download postgres
   get_url:
     url: https://ftp.postgresql.org/pub/source/v9.4.5/postgresql-9.4.5.tar.bz2

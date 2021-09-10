@@ -88,6 +88,5 @@ Renew the ticket with kinit PRINCIPALNAME -R
 
 
 # ToDo:
-* Use Kerberos from ssh
-* add ssh to principal
-* ssh into other host with pw (ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 IP)
+* configure gssapi in postgres
+* addprincipal for postgres

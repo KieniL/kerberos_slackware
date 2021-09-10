@@ -4,3 +4,7 @@ haveged.tar
 rng.tar.gz
 postgres.tar
 postgres.tar.bz2
+bison.tar
+bison.tar.xz
+flex.tar
+flex.tar.xz
