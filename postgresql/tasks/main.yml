@@ -45,6 +45,21 @@
     remote_src: true
     directory_mode: true
 
+- name: copy the usr share ftp folders into usr share
+  copy:
+    src: /root/ftp/usr/share/
+    dest: /usr/share/
+    mode: 0755
+    remote_src: true
+    directory_mode: true
+
+
+
+- name: copy the ftpmessage to ftp homefolder
+  copy:
+    src: "{{ role_path }}/files/ftpmessage"
+    dest: /home/ftp/ftpmessage
+
 - name: copy the vsftp config into /etc
   copy:
     src: /root/ftp/usr/doc/vsftpd-2.0.1/EXAMPLE/INTERNET_SITE_NOINETD/vsftpd.conf
@@ -52,16 +67,40 @@
     mode: 0755
     remote_src: true
 
+
+- name: disable anonymous ftp connection
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    regexp: "^anonymous_enable=YES"
+    line: "anonymous_enable=NO"
+
+- name: enable local ftp connection
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    regexp: "^local_enable=NO"
+    line: "local_enable=YES"
+
+- name: disable oneprocess model
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    regexp: "^one_process_model=YES"
+    line: "one_process_model=NO"
+
+
+- name: Get running vsftpd processes
+  shell: "ps -ef | grep -v grep | grep -w vsftpd | awk '{print $2}'"
+  register: running_processes
+
+- name: Kill running vsftpd processes
+  shell: "kill {{ item }}"
+  with_items: "{{ running_processes.stdout_lines }}"
+
 - name: start vsftp
-  command: vsftpd &
+  shell: vsftpd &
   register: vsftpd
-  failed_when: vsftpd.stdout != ""
+  ignore_errors: true
 
+ 
 
-#- name: enable listen yes in vsftp config
-#  lineinfile:
-#    dest: /etc/vsftpd.conf
-#    regexp: "^#listen=YES"
-#    line: "listen=YES"
     
     #listen=YES
