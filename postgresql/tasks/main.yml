@@ -8,7 +8,7 @@
 
 - name: download flex needed for postgres with gssapi
   get_url:
-    url: https://mirrors.slackware.com/slackware/slackware-14.2/source/d/flex/flex-2.6.0.tar.xz
+    url: https://slackware.uk/slackware/slackware64-14.1/slackware64/d/flex-2.5.37-x86_64-1.txz
     dest: ./flex.tar.xz
   delegate_to: 127.0.0.1
 
@@ -76,14 +76,13 @@
 - name: make install the bison source
   command: chdir=/root/bison/bison-3.0.4/ make install
 
-- name: configure the flex source
-  command: chdir=/root/flex/flex-2.6.0/ ./configure
-
-- name: make the flex source
-  command: chdir=/root/flex/flex-2.6.0/ make
-
-- name: make install the flex source
-  command: chdir=/root/flex/flex-2.6.0/ make install
+- name: copy the flex bin files into /usr/local/bin/
+  copy:
+    src: /root/flex/usr/bin/
+    dest: /usr/local/bin/
+    mode: 0755
+    remote_src: true
+    directory_mode: true
 
 - name: download postgres
   get_url:
