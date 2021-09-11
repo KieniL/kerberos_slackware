@@ -86,6 +86,20 @@
     regexp: "^one_process_model=YES"
     line: "one_process_model=NO"
 
+- name: set local_root to ftp home folder
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    line: "local_root=/home/ftp"
+
+- name: disable chroot in ftp
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    line: "chroot_local_user=YES"
+   
+- name: switch to pam authentication
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    line: "pam_service_name=vsftpd"
 
 - name: Get running vsftpd processes
   shell: "ps -ef | grep -v grep | grep -w vsftpd | awk '{print $2}'"
