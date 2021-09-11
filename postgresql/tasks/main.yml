@@ -1,193 +1,67 @@
 ---
-# tasks file for postgresql
-- name: download bison needed for postgres with gssapi
+# tasks file for ftp
+
+- name: download ftp
   get_url:
-    url: https://mirrors.slackware.com/slackware/slackware-14.2/source/d/bison/bison-3.0.4.tar.xz
-    dest: ./bison.tar.xz
+    url: ftp://ftp.slackware.com/pub/slackware/slackware-10.1/slackware/n/vsftpd-2.0.1-i486-1.tgz
+    dest: ./ftp.tgz
   delegate_to: 127.0.0.1
 
-- name: download flex needed for postgres with gssapi
-  get_url:
-    url: https://slackware.uk/slackware/slackware64-14.1/slackware64/d/flex-2.5.37-x86_64-1.txz
-    dest: ./flex.tar.xz
-  delegate_to: 127.0.0.1
-
-
-- name: unzip the bison.tar.xz to get the tar
-  command: xz -d ./bison.tar.xz
-  delegate_to: 127.0.0.1
-  ignore_errors: true
-
-- name: unzip the flex.tar.xz to get the tar
-  command: xz -d ./flex.tar.xz
-  delegate_to: 127.0.0.1
-  ignore_errors: true
-
-- name: copy bison.tar to remote machine
+- name: copy ftp.tgz to remote machine
   copy:
-    src: ./bison.tar
-    dest: /root/bison.tar
+    src: ./ftp.tgz
+    dest: /root/ftp.tgz
     owner: root
     group: root
     mode: 0644
 
-- name: copy flex.tar to remote machine
-  copy:
-    src: ./flex.tar
-    dest: /root/flex.tar
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Create the bison directory if it does not exist
+- name: Create the ftp directory if it does not exist
   file:
-    path: /root/bison
+    path: /root/ftp
     state: directory
     mode: '0755'
     owner: root
     group: root
 
-- name: Create the flex directory if it does not exist
-  file:
-    path: /root/flex
-    state: directory
-    mode: '0755'
-    owner: root
-    group: root
-
-- name: unzip bison tar
+- name: Extract ftp.tgz into /root/ftp
   unarchive:
-    src: /root/bison.tar
-    dest: /root/bison
-    remote_src: true
+    src: ftp.tgz
+    dest: /root/ftp
 
-- name: unzip flex tar
-  unarchive:
-    src: /root/flex.tar
-    dest: /root/flex
-    remote_src: true
 
-- name: configure the bison source
-  command: chdir=/root/bison/bison-3.0.4/ ./configure M4='usr/bin/m4'
-
-- name: make the bison source
-  command: chdir=/root/bison/bison-3.0.4/ make
-
-- name: make install the bison source
-  command: chdir=/root/bison/bison-3.0.4/ make install
-
-- name: copy the flex bin files into /usr/local/bin/
+- name: copy the vsftp binaries into /usr/sbin
   copy:
-    src: /root/flex/usr/bin/
-    dest: /usr/local/bin/
+    src: /root/ftp/usr/sbin/
+    dest: /usr/sbin/
     mode: 0755
     remote_src: true
     directory_mode: true
 
-- name: download postgres
-  get_url:
-    url: https://ftp.postgresql.org/pub/source/v9.4.5/postgresql-9.4.5.tar.bz2
-    dest: ./postgres.tar.bz2
-  delegate_to: 127.0.0.1
-
-- name: extract the postgres.tar
-  command: bzip2 -d ./postgres.tar.bz2
-  delegate_to: 127.0.0.1
-  ignore_errors: true
-
-- name: copy postgres.tar to remote machine
+- name: copy the ftp home folder into /home
   copy:
-    src: ./postgres.tar
-    dest: /root/postgres.tar
-    owner: root
-    group: root
-    mode: 0644
-
-- name: copy the postgres file
-  copy:
-    src: "{{ role_path }}/files/postgres"
-    dest: /usr/local/share/pwfile
-
-- name: Create the postgres directory if it does not exist
-  file:
-    path: /root/postgres
-    state: directory
-    mode: '0755'
-    owner: root
-    group: root
-
-- name: unzip postgres tar
-  unarchive:
-    src: /root/postgres.tar
-    dest: /root/postgres
-    remote_src: true
-
-- name: Ensure group "postgres" exists
-  group:
-    name: postgres
-    gid: 209 # recommended from slackbuild
-    state: present
-
-- name: Create Postgres user
-  user:
-    name: postgres
-    comment: postgres serviceuser
-    uid: 209 # recommended from slackbuild
-    group: postgres
-    home: /var/lib/pgsql
-
-- name: configure the postgres source
-  command: chdir=/root/postgres/postgresql-9.4.5/ ./configure --without-readline --with-gssapi
-
-- name: make the postgres source
-  command: chdir=/root/postgres/postgresql-9.4.5/ make
-
-- name: make install the postgres source
-  command: chdir=/root/postgres/postgresql-9.4.5/ make install
-
-- name: copy the postgres binaries into /usr/local/bin
-  copy:
-    src: /usr/local/pgsql/bin/
-    dest: /usr/local/bin/
+    src: /root/ftp/home/
+    dest: /home/
     mode: 0755
     remote_src: true
     directory_mode: true
 
-
-
-- name: copy the pgsql share files into /usr/local/share/
+- name: copy the vsftp config into /etc
   copy:
-    src: /usr/local/pgsql/share/
-    dest: /usr/local/share/
+    src: /root/ftp/usr/doc/vsftpd-2.0.1/EXAMPLE/INTERNET_SITE_NOINETD/vsftpd.conf
+    dest: /etc/vsftpd.conf
     mode: 0755
     remote_src: true
-    directory_mode: true
 
-- name: copy the pgsql libfiles into local lib
-  copy:
-    src: /usr/local/pgsql/lib/
-    dest: /usr/local/lib/
-    mode: 0755
-    remote_src: true
-    directory_mode: true
+- name: start vsftp
+  command: vsftpd &
+  register: vsftpd
+  failed_when: vsftpd.stdout != ""
+
+
+#- name: enable listen yes in vsftp config
+#  lineinfile:
+#    dest: /etc/vsftpd.conf
+#    regexp: "^#listen=YES"
+#    line: "listen=YES"
     
-- name: set permission on /usr/local/pgsql to postgres
-  file:
-    dest: /usr/local/pgsql
-    owner: postgres
-    group: postgres 
-    mode: 0755
-    recurse: yes
-
-- name: initialize the database
-  command: chdir=/home su postgres -c "initdb -D /var/lib/pgsql/9.4/data --locale=en_US.UTF-8 -A md5 --pwfile=/usr/local/share/pwfile"
-  ignore_errors: true
-
-- name: start the database
-  command: chdir=/home su postgres -c "pg_ctl start -D /var/lib/pgsql/9.4/data "
-
-- name: add gssauthentiction to pg
-  lineinfile:
-    dest: /var/lib/pgsql/9.4/data/pg_hba.conf
-    regexp: "^#host	all		all		0.0.0.0/0		gss"
-    line: "host	all		all		0.0.0.0/0		gss"
+    #listen=YES

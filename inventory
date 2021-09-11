@@ -6,7 +6,7 @@ postgres
 kerb01 ansible_host=192.168.56.21
 
 [postgres]
-postgres01 ansible_host=192.168.56.18
+postgres01 ansible_host=192.168.56.25
 
 [slackware:vars]
 ansible_python_interpreter=/usr/local/bin/python3.7
