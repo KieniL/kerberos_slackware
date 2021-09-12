@@ -183,4 +183,10 @@
   command: rngd
 
 - name: initialise the database
-  command: kdb5_util create -s -P {{kerberos_password}} 
+  command: kdb5_util create -s -P {{kerberos_password}}
+
+- name: create principal
+  command: kadmin.local -q "addprinc -pw {{kerberos_principal_password}} {{kerberos_principal_name}}"
+
+- name: start krb5 service
+  command: /etc/rc.d/rc.krb5kdc restart

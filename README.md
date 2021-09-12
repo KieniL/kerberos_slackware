@@ -57,18 +57,7 @@ It installs haveged and rng-tools to have more entropy for randomize data in ker
 You can see the entropy with this command:
 cat /proc/sys/kernel/random/entropy_avail
 
-You need to generate a principal in kerberos db:
-
-kadmin.local
-
-To have a policy in place use this command:
-add_policy -maxlife 30days -minlife 1days -minlength 8 default
-
-then
-addprinc PRINCIPALNAME
-(you need to set a password)
-
-with list_principals you can see them
+It also generates a test principals (Test:Test1234567)
 ## Obtain a ticket from client
 
 Have this installed:
@@ -90,3 +79,5 @@ Renew the ticket with kinit PRINCIPALNAME -R
 # ToDo:
 * configure gssapi in postgres
 * addprincipal for postgres
+
+with help from: https://subscription.packtpub.com/book/networking-and-servers/9781904811329/1/ch01lvl1sec09/installing-linux-pam
