@@ -3,12 +3,13 @@ kerberos
 postgres
 
 [kerberos]
-kerb01 ansible_host=192.168.56.28
+kerb01
 
 [postgres]
-postgres01 ansible_host=192.168.56.26
+postgres01
 
 [slackware:vars]
+ansible_host=192.168.56.31
 ansible_python_interpreter=/usr/local/bin/python3.7
 ansible_user=root
 ansible_password=root

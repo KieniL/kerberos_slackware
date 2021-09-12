@@ -5,9 +5,6 @@ rng.tar.gz
 ftp.tgz
 ssh.yml
 test.yml
-linux-pam.tar
-util-linux-2.12r.tar
-util-linux-2.12r.tar.bz2
-pam.tar
-pam.tar.bz2
-cracklib.tar.gz
+ftp.yml
+ssh.tar.gz
+openssl.tar.gz

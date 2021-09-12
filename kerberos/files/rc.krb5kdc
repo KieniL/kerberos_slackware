@@ -1,5 +1,5 @@
 #!/bin/bash
-bin="/usr/sbin/krb5kdc"
+bin="/usr/kerberos/sbin/krb5kdc"
 pid_file="/var/run/krb5kdc.pid"
 
 function start_krb5kdc {

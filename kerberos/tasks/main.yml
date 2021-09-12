@@ -134,7 +134,8 @@
     remote_src: true
 
 - name: configure the krb source
-  command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --libdir=/usr/lib64 --sysconfdir=/etc --localstatedir=/var/krb5 --datarootdir=/usr/share/krb5
+  #command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --libdir=/usr/lib64 --sysconfdir=/etc --localstatedir=/var/krb5 --datarootdir=/usr/share/krb5
+  command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr/kerberos --sysconfdir=/etc --localstatedir=/var --mandir=/usr/kerberos/man --enable-dns-for-realm --build=i486-slackware-linux
 
 - name: make the krb source
   command: chdir=/root/krb5-{{krbversion}}/src/ make
@@ -172,15 +173,34 @@
     group: root
     mode: 0755
 
-- name: start krb5 service
-  command: /etc/rc.d/rc.krb5kdc restart
-
 - name: trigger the haveged script restart
   command: /etc/rc.d/rc.haveged restart
   ignore_errors: true
 
 - name: trigger rngd to increase random entropy availability
   command: rngd
+
+- name: copy the kdb5_util binary
+  copy:
+    src: /root/krb5-1.11.6/src/kadmin/dbutil/kdb5_util
+    dest: /usr/local/bin/kdb5_util
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+
+- name: copy the kdb5_util binary
+  copy:
+    src: /root/krb5-1.11.6/src/kadmin/cli/kadmin.local
+    dest: /usr/local/bin/kadmin.local
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+
+- name: destroy the database
+  command: echo "yes" | kdb5_util destroy
+  ignore_errors: true
 
 - name: initialise the database
   command: kdb5_util create -s -P {{kerberos_password}}

@@ -1,312 +1,96 @@
 ---
-# tasks file for ftp
-
-- name: download pam
+# tasks file for ssh
+- name: download ssh
   get_url:
-    url: http://www.linux-pam.org/library/Linux-PAM-1.1.8.tar.bz2
-    dest: ./pam.tar.bz2
+    # url: https://slackware.osuosl.org/slackware-14.1/patches/source/openssh/openssh-7.4p1.tar.gz
+    url: https://slackbuilds.org/slackbuilds/14.1/network/openssh-krb5.tar.gz
+    dest: ./ssh.tar.gz
   delegate_to: 127.0.0.1
 
-- name: download util-linux
+- name: download openssl
   get_url:
-    url: https://ftp.riken.jp/Linux/slackware/slackware-12.0/source/a/util-linux/util-linux-2.12r.tar.bz2
-    dest: ./util-linux-2.12r.tar.bz2
+    url: https://ftp.openssl.org/source/old/1.0.2/openssl-1.0.2.tar.gz
+    dest: ./openssl.tar.gz
   delegate_to: 127.0.0.1
 
-- name: download cracklib
-  get_url:
-    url: https://ftp.osuosl.org/pub/blfs/conglomeration/cracklib/cracklib-2.9.6.tar.gz
-    dest: ./cracklib.tar.gz
-  delegate_to: 127.0.0.1
 
-- name: download second pam
-  get_url:
-    url: https://harrier.slackbuilds.org/~vbatts/pam/pkgs/pam-1.3.1-x86_64-1_pam.txz
-    dest: ./pamtwo.txz
-  delegate_to: 127.0.0.1
-
-- name: unzip the haveged.txz to get the tar
-  command: xz -d ./pamtwo.txz
-  delegate_to: 127.0.0.1
-  ignore_errors: true
-
-- name: copy haveged.tar to remote machine
+- name: copy ssh.tar to remote machine
   copy:
-    src: ./pamtwo.tar
-    dest: /root/pamtwo.tar
+    src: ./ssh.tar.gz
+    dest: /root/ssh.tar.gz
     owner: root
     group: root
     mode: 0644
 
-- name: Create the haveged directory if it does not exist
+- name: copy openssl.tar to remote machine
+  copy:
+    src: ./openssl.tar.gz
+    dest: /root/openssl.tar.gz
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create the ssh directory if it does not exist
   file:
-    path: /root/pamtwo
+    path: /root/ssh
     state: directory
     mode: '0755'
     owner: root
     group: root
 
-- name: unzip haveged tar
-  unarchive:
-    src: /root/pamtwo.tar
-    dest: /root/pamtwo
-    remote_src: true
-
-- name: copy the pam files into /
-  copy:
-    src: /root/pamtwo/
-    dest: /
-    mode: 0755
-    remote_src: true
-    directory_mode: true
-
-- name: extract the util-linux bz2
-  command: bzip2 -d ./util-linux-2.12r.tar.bz2
-  delegate_to: 127.0.0.1
-  ignore_errors: true
-
-- name: extract the pam bz2
-  command: bzip2 -d ./pam.tar.bz2
-  delegate_to: 127.0.0.1
-  ignore_errors: true
-
-- name: copy pam.tar to remote machine
-  copy:
-    src: ./pam.tar
-    dest: /root/pam.tar
-    owner: root
-    group: root
-    mode: 0644
-
-- name: copy util-linux.tar to remote machine
-  copy:
-    src: ./util-linux-2.12r.tar
-    dest: /root/util-linux.tar
-    owner: root
-    group: root
-    mode: 0644
-
-
-- name: copy cracklib.tar.gz remote machine
-  copy:
-    src: ./cracklib.tar.gz
-    dest: /root/cracklib.tar.gz
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Create the pam directory if it does not exist
+- name: Create the openssl directory if it does not exist
   file:
-    path: /root/pam
+    path: /root/openssl
     state: directory
     mode: '0755'
     owner: root
     group: root
 
-- name: Create the util-linux directory if it does not exist
+- name: unzip ssh tar
+  unarchive:
+    src: /root/ssh.tar.gz
+    dest: /root/ssh
+    remote_src: true
+
+- name: unzip openssl tar
+  unarchive:
+    src: /root/openssl.tar.gz
+    dest: /root/openssl
+    remote_src: true
+
+- name: configure the openssl source
+  command: chdir=/root/openssl/openssl-1.0.2/ ./config
+
+- name: make the openssl source
+  command: chdir=/root/openssl/openssl-1.0.2/ make
+
+- name: make install the openssl source
+  command: chdir=/root/openssl/openssl-1.0.2/ make install
+
+#- name: configure the ssh source
+#  command: chdir=/root/ssh/openssh-7.4p1/ ./configure --with-kerberos5
+
+#- name: make the ssh source
+#  command: chdir=/root/ssh/openssh-7.4p1/ make
+
+#- name: make install the ssh source
+#  command: chdir=/root/ssh/openssh-7.4p1/ make install
+
+- name: run the SlackBuild
+  command: chdir=/root/ssh/openssh-krb5/ sh openssh-krb5.SlackBuild
+
+- name: Create the openssh-krb5 directory if it does not exist
   file:
-    path: /root/util-linux
+    path: /root/openssh-krb5
     state: directory
     mode: '0755'
     owner: root
     group: root
 
-- name: Create the cracklib directory if it does not exist
-  file:
-    path: /root/cracklib
-    state: directory
-    mode: '0755'
-    owner: root
-    group: root
-
-- name: unzip cracklib tar
+- name: unzip openssh-krb5 tar
   unarchive:
-    src: /root/cracklib.tar.gz
-    dest: /root/cracklib
+    src: /tmp/openssh-krb5-6.7p1-i486-1_SBo.tgz
+    dest: /root/openssh-krb5
     remote_src: true
 
-- name: unzip pam tar
-  unarchive:
-    src: /root/pam.tar
-    dest: /root/pam
-    remote_src: true
-
-- name: unzip util-linux tar
-  unarchive:
-    src: /root/util-linux.tar
-    dest: /root/util-linux
-    remote_src: true
-
-- name: configure the cracklib source
-  command: chdir=/root/cracklib/cracklib-2.9.6/ ./configure
-
-- name: make the cracklib source
-  command: chdir=/root/cracklib/cracklib-2.9.6/ make
-
-- name: make install the cracklib source
-  command: chdir=/root/cracklib/cracklib-2.9.6/ make install
-
-- name: configure the pam source
-  command: chdir=/root/pam/Linux-PAM-1.1.8/ ./configure --enable-read-both-confs
-
-- name: make the pam source
-  command: chdir=/root/pam/Linux-PAM-1.1.8/ make
-
-- name: make install the pam source
-  command: chdir=/root/pam/Linux-PAM-1.1.8/ make install
-
-- name: set HAVE_PAM in MCONFIG
-  lineinfile:
-    dest: /root/util-linux/util-linux-2.12r/MCONFIG
-    regexp: "^HAVE_PAM=no"
-    line: "HAVE_PAM=yes"
-
-- name: configure the util-linux source
-  command: chdir=/root/util-linux/util-linux-2.12r/ ./configure
-
-- name: make the util-linux source
-  command: chdir=/root/util-linux/util-linux-2.12r/ make
-
-- name: make install the util-linux login utils source
-  command: chdir=/root/util-linux/util-linux-2.12r/login-utils/ make login
-
-- name: copy the login program into /usr/bin
-  copy:
-    src: /root/util-linux/util-linux-2.12r/login-utils/login
-    dest:  /usr/bin
-    mode: 0755
-    remote_src: true
-    force: yes
-
-- name: copy the pam conf into /etc
-  copy:
-    src: /root/pam/Linux-PAM-1.1.8/conf/pam.conf
-    dest: /etc
-    mode: 0755
-    remote_src: true
-
-
-- name: download ftp
-  get_url:
-    url: ftp://ftp.slackware.com/pub/slackware/slackware-10.1/slackware/n/vsftpd-2.0.1-i486-1.tgz
-    dest: ./ftp.tgz
-  delegate_to: 127.0.0.1
-
-- name: copy ftp.tgz to remote machine
-  copy:
-    src: ./ftp.tgz
-    dest: /root/ftp.tgz
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Create the ftp directory if it does not exist
-  file:
-    path: /root/ftp
-    state: directory
-    mode: '0755'
-    owner: root
-    group: root
-
-- name: Extract ftp.tgz into /root/ftp
-  unarchive:
-    src: ftp.tgz
-    dest: /root/ftp
-
-
-- name: copy the vsftp binaries into /usr/sbin
-  copy:
-    src: /root/ftp/usr/sbin/
-    dest: /usr/sbin/
-    mode: 0755
-    remote_src: true
-    directory_mode: true
-
-- name: copy the ftp home folder into /home
-  copy:
-    src: /root/ftp/home/
-    dest: /home/
-    mode: 0755
-    remote_src: true
-    directory_mode: true
-
-- name: copy the usr share ftp folders into usr share
-  copy:
-    src: /root/ftp/usr/share/
-    dest: /usr/share/
-    mode: 0755
-    remote_src: true
-    directory_mode: true
-
-- name: copy the ftpmessage to ftp homefolder
-  copy:
-    src: "{{ role_path }}/files/ftpmessage"
-    dest: /home/ftp/ftpmessage
-
-#- name: Create the pam directory if it does not exist
-#  file:
-#    path: /etc/pam.d
-#    state: directory
-#    mode: '0755'
-#    owner: root
-#    group: root
-
-#- name: copy the vsftpd pam config to pam.d
-#  copy:
-#    src: "{{ role_path }}/files/vsftpd"
-#    dest: /etc/pam.d/vsftpd
-
-
-- name: copy the vsftp config into /etc
-  copy:
-    src: /root/ftp/usr/doc/vsftpd-2.0.1/EXAMPLE/INTERNET_SITE_NOINETD/vsftpd.conf
-    dest: /etc/vsftpd.conf
-    mode: 0755
-    remote_src: true
-
-
-- name: disable anonymous ftp connection
-  lineinfile:
-    dest: /etc/vsftpd.conf
-    regexp: "^anonymous_enable=YES"
-    line: "anonymous_enable=NO"
-
-- name: enable local ftp connection
-  lineinfile:
-    dest: /etc/vsftpd.conf
-    regexp: "^local_enable=NO"
-    line: "local_enable=YES"
-
-- name: disable oneprocess model
-  lineinfile:
-    dest: /etc/vsftpd.conf
-    regexp: "^one_process_model=YES"
-    line: "one_process_model=NO"
-
-- name: set local_root to ftp home folder
-  lineinfile:
-    dest: /etc/vsftpd.conf
-    line: "local_root=/home/ftp"
-
-- name: disable chroot in ftp
-  lineinfile:
-    dest: /etc/vsftpd.conf
-    line: "chroot_local_user=YES"
-   
-- name: switch to pam authentication
-  lineinfile:
-    dest: /etc/vsftpd.conf
-    line: "pam_service_name=vsftpd"
-
-- name: Get running vsftpd processes
-  shell: "ps -ef | grep -v grep | grep -w vsftpd | awk '{print $2}'"
-  register: running_processes
-
-- name: Kill running vsftpd processes
-  shell: "kill {{ item }}"
-  with_items: "{{ running_processes.stdout_lines }}"
-
-- name: start vsftp
-  shell: vsftpd &
-  register: vsftpd
-  ignore_errors: true
+  # /usr/local/sbin/sshd -t -f /usr/local/etc/sshd_config
