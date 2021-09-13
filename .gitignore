@@ -8,3 +8,6 @@ test.yml
 ftp.yml
 ssh.tar.gz
 openssl.tar.gz
+cyrus-sasl.tar
+linux-pam.tar.gz
+cyrus-sasl.tar.xz

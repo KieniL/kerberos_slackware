@@ -105,11 +105,11 @@
 
 - name: set kerberosversion
   set_fact:
-    krbversion: 1.11.6
+    krbversion: 1.8.3
 
 - name: download kerberos from web mit edu to control machine (remote does not have internet)
   get_url:
-    url: https://web.mit.edu/kerberos/dist/krb5/1.11/krb5-{{krbversion}}-signed.tar
+    url: https://web.mit.edu/kerberos/dist/krb5/1.8/krb5-{{krbversion}}-signed.tar
     dest: ./kerberos.tar
   delegate_to: 127.0.0.1
 
@@ -135,7 +135,7 @@
 
 - name: configure the krb source
   #command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --libdir=/usr/lib64 --sysconfdir=/etc --localstatedir=/var/krb5 --datarootdir=/usr/share/krb5
-  command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr/kerberos --sysconfdir=/etc --localstatedir=/var --mandir=/usr/kerberos/man --enable-dns-for-realm --build=i486-slackware-linux
+  command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir=/usr/kerberos/man --enable-dns-for-realm --build=i486-slackware-linux
 
 - name: make the krb source
   command: chdir=/root/krb5-{{krbversion}}/src/ make
@@ -182,7 +182,7 @@
 
 - name: copy the kdb5_util binary
   copy:
-    src: /root/krb5-1.11.6/src/kadmin/dbutil/kdb5_util
+    src: /root/krb5-{{krbversion}}/src/kadmin/dbutil/kdb5_util
     dest: /usr/local/bin/kdb5_util
     owner: root
     group: root
@@ -191,7 +191,7 @@
 
 - name: copy the kdb5_util binary
   copy:
-    src: /root/krb5-1.11.6/src/kadmin/cli/kadmin.local
+    src: /root/krb5-{{krbversion}}/src/kadmin/cli/kadmin.local
     dest: /usr/local/bin/kadmin.local
     owner: root
     group: root
@@ -204,9 +204,11 @@
 
 - name: initialise the database
   command: kdb5_util create -s -P {{kerberos_password}}
+  ignore_errors: true
 
 - name: create principal
   command: kadmin.local -q "addprinc -pw {{kerberos_principal_password}} {{kerberos_principal_name}}"
+  ignore_errors: true
 
 - name: start krb5 service
   command: /etc/rc.d/rc.krb5kdc restart

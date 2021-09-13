@@ -1,6 +1,6 @@
 # kerberos_slackware
 
-Ansible playbook to install kerberos on slackware (educational purposes)
+Ansible playbook to install kerberos and a service on a host based on slackware (educational purposes)
 
 I increased the memory of slackware to 512 MB
 

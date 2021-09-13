@@ -3,7 +3,8 @@
 - name: download ssh
   get_url:
     # url: https://slackware.osuosl.org/slackware-14.1/patches/source/openssh/openssh-7.4p1.tar.gz
-    url: https://slackbuilds.org/slackbuilds/14.1/network/openssh-krb5.tar.gz
+    # url: https://slackbuilds.org/slackbuilds/14.1/network/openssh-krb5.tar.gz
+    url: https://mirrors.xmission.com/slackware/slackware-13.1/source/n/openssh/openssh-5.5p1.tar.gz
     dest: ./ssh.tar.gz
   delegate_to: 127.0.0.1
 
@@ -12,6 +13,23 @@
     url: https://ftp.openssl.org/source/old/1.0.2/openssl-1.0.2.tar.gz
     dest: ./openssl.tar.gz
   delegate_to: 127.0.0.1
+
+- name: download linux-pam
+  get_url:
+    url: http://www.linux-pam.org/library/Linux-PAM-1.1.2.tar.gz
+    dest: ./linux-pam.tar.gz
+  delegate_to: 127.0.0.1
+
+- name: download cyrus-sasl
+  get_url:
+    url: https://mirrors.xmission.com/slackware/slackware-13.1/source/n/cyrus-sasl/cyrus-sasl-2.1.23.tar.xz
+    dest: ./cyrus-sasl.tar.xz
+  delegate_to: 127.0.0.1
+
+- name: unzip the cyrus-sasl.tar.xz to get the tar
+  command: xz -d ./cyrus-sasl.tar.xz
+  delegate_to: 127.0.0.1
+  ignore_errors: true
 
 
 - name: copy ssh.tar to remote machine
@@ -26,6 +44,22 @@
   copy:
     src: ./openssl.tar.gz
     dest: /root/openssl.tar.gz
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy linux-pam.tar to remote machine
+  copy:
+    src: ./linux-pam.tar.gz
+    dest: /root/linux-pam.tar.gz
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy cyrus-sasl.tar.xz to remote machine
+  copy:
+    src: ./cyrus-sasl.tar
+    dest: /root/cyrus-sasl.tar
     owner: root
     group: root
     mode: 0644
@@ -46,6 +80,30 @@
     owner: root
     group: root
 
+- name: Create the linux-pam directory if it does not exist
+  file:
+    path: /root/linux-pam
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Create the cyrus-sasl directory if it does not exist
+  file:
+    path: /root/cyrus-sasl
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+
+
+- name: unzip cyrus-sasl tar
+  unarchive:
+    src: /root/cyrus-sasl.tar
+    dest: /root/cyrus-sasl
+    remote_src: true
+
 - name: unzip ssh tar
   unarchive:
     src: /root/ssh.tar.gz
@@ -58,6 +116,37 @@
     dest: /root/openssl
     remote_src: true
 
+- name: unzip linux-pam tar
+  unarchive:
+    src: /root/linux-pam.tar.gz
+    dest: /root/linux-pam
+    remote_src: true
+
+- name: configure the cyrus-sasl source
+  command: chdir=/root/cyrus-sasl/cyrus-sasl-2.1.23/ ./configure --enable-anon --enable-pam --enable-plain --enable-login \
+    --enable-sql --disable-krb4 --disable-otp --disable-cram --disable-digest \
+    --with-pam=/usr/include/security \
+    --with-pwcheck=/var/state/saslauthd --with-openssl=/usr/local/ssl/ \
+    --with-dblib=berkeley --with-plugindir=/usr/local/lib/sasl2 --with-bdblibdir=/usr/local/berkeley/lib \
+    --with-bdb-incdir=/usr/local/berkeley/include \
+    --with-dbpath=/var/lib/sasl/sasldb2 \
+    --with-saslauthd=/var/state/saslauthd --with-gss_impl=mit --without-des
+
+- name: make the cyrus-sasl source
+  command: chdir=/root/cyrus-sasl/cyrus-sasl-2.1.23/ make
+
+- name: make install the cyrus-sasl source
+  command: chdir=/root/cyrus-sasl/cyrus-sasl-2.1.23/ make install
+
+- name: configure the pam source
+  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ ./configure
+
+- name: make the pam source
+  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ make
+
+- name: make install the pam source
+  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ make install
+
 - name: configure the openssl source
   command: chdir=/root/openssl/openssl-1.0.2/ ./config
 
@@ -67,30 +156,83 @@
 - name: make install the openssl source
   command: chdir=/root/openssl/openssl-1.0.2/ make install
 
-#- name: configure the ssh source
-#  command: chdir=/root/ssh/openssh-7.4p1/ ./configure --with-kerberos5
+- name: configure the ssh source
+  command: chdir=/root/ssh/openssh-5.5p1/ ./configure --with-kerberos5
 
-#- name: make the ssh source
-#  command: chdir=/root/ssh/openssh-7.4p1/ make
+- name: make the ssh source
+  command: chdir=/root/ssh/openssh-5.5p1/ make
 
-#- name: make install the ssh source
-#  command: chdir=/root/ssh/openssh-7.4p1/ make install
+- name: make install the ssh source
+  command: chdir=/root/ssh/openssh-5.5p1/ make install
 
-- name: run the SlackBuild
-  command: chdir=/root/ssh/openssh-krb5/ sh openssh-krb5.SlackBuild
+- name: add the gssapi authentiction to local sshd_config 
+  lineinfile:
+    dest: /usr/local/etc/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^#GSSAPIAuthentication no', line: 'GSSAPIAuthentication yes' }
+    - { regexp: '^#GSSAPICleanupCredentials yes', line: 'GSSAPICleanupCredentials yes' }
 
-- name: Create the openssh-krb5 directory if it does not exist
-  file:
-    path: /root/openssh-krb5
-    state: directory
-    mode: '0755'
+- name: add the gssapi authentiction to etc sshd_config 
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^#GSSAPIAuthentication no', line: 'GSSAPIAuthentication yes' }
+    - { regexp: '^#GSSAPICleanupCredentials yes', line: 'GSSAPICleanupCredentials yes' }
+
+
+- name: run ssh with sshd_config
+  command: /usr/local/sbin/sshd -t -f /usr/local/etc/sshd_config
+
+
+- name: copy the new sshd
+  copy:
+    src: /usr/local/sbin/sshd
+    dest: /usr/sbin/sshd
     owner: root
     group: root
-
-- name: unzip openssh-krb5 tar
-  unarchive:
-    src: /tmp/openssh-krb5-6.7p1-i486-1_SBo.tgz
-    dest: /root/openssh-krb5
+    mode: 0755
     remote_src: true
+
+- name: copy the new ssh-keygen
+  copy:
+    src: /usr/local/bin/ssh-keygen
+    dest: /usr/bin/ssh-keygen
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+
+- name: Reboot immediately
+  shell: "reboot"
+  async: 1
+  poll: 0
+
+- name: Wait for the reboot to complete if there was a change.
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 20
+    timeout: 300
+
+# - name: run the SlackBuild
+#   command: chdir=/root/ssh/openssh-krb5/ sh openssh-krb5.SlackBuild
+
+# - name: Create the openssh-krb5 directory if it does not exist
+#   file:
+#     path: /root/openssh-krb5
+#     state: directory
+#     mode: '0755'
+#     owner: root
+#     group: root
+
+# - name: unzip openssh-krb5 tar
+#   unarchive:
+#     src: /tmp/openssh-krb5-6.7p1-i486-1_SBo.tgz
+#     dest: /root/openssh-krb5
+#     remote_src: true
 
   # /usr/local/sbin/sshd -t -f /usr/local/etc/sshd_config
