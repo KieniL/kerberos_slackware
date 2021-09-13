@@ -36,13 +36,12 @@ make install
 </code>
 
 # Structure of the inventory
-there are two hosts (kerberos and postgres which can contain multiple servers)
-both hosts are grouped to a slackware group to only have to set the variables once
+there is one host which contains both roles
 # Usage
 ansible-playbook -i inventory main.yml
 
 to only run the playbooks against a specific hostgroup:
-ansible-playbook -i inventory --limit postgres main.yml
+ansible-playbook -i inventory --limit ssh main.yml
 ansible-playbook -i inventory --limit kerberos main.yml
 
 -K means the sudo password on the control machine
@@ -77,7 +76,6 @@ Renew the ticket with kinit PRINCIPALNAME -R
 
 
 # ToDo:
-* configure gssapi in postgres
-* addprincipal for postgres
+* use principal for ssh authentication
 
 with help from: https://subscription.packtpub.com/book/networking-and-servers/9781904811329/1/ch01lvl1sec09/installing-linux-pam

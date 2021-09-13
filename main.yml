@@ -3,7 +3,7 @@
   roles:
     - kerberos
 
-- hosts: postgres
-  tags: postgres
+- hosts: ssh
+  tags: ssh
   roles:
-    - postgresql
+    - ssh

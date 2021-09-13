@@ -1,12 +1,12 @@
 [slackware:children]
 kerberos
-postgres
+ssh
 
 [kerberos]
 kerb01
 
-[postgres]
-postgres01
+[ssh]
+ssh01
 
 [slackware:vars]
 ansible_host=192.168.56.33
