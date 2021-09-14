@@ -26,8 +26,19 @@
     dest: ./cyrus-sasl.tar.xz
   delegate_to: 127.0.0.1
 
+- name: download shadow
+  get_url:
+    url: https://mirrors.xmission.com/slackware/slackware-13.1/source/a/shadow/shadow-4.1.4.2.tar.xz
+    dest: ./shadow.tar.xz
+  delegate_to: 127.0.0.1
+
 - name: unzip the cyrus-sasl.tar.xz to get the tar
   command: xz -d ./cyrus-sasl.tar.xz
+  delegate_to: 127.0.0.1
+  ignore_errors: true
+
+- name: unzip the shadow.tar.xz to get the tar
+  command: xz -d ./shadow.tar.xz
   delegate_to: 127.0.0.1
   ignore_errors: true
 
@@ -64,6 +75,14 @@
     group: root
     mode: 0644
 
+- name: copy shadow.tar to remote machine
+  copy:
+    src: ./shadow.tar
+    dest: /root/shadow.tar
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Create the ssh directory if it does not exist
   file:
     path: /root/ssh
@@ -96,6 +115,19 @@
     owner: root
     group: root
 
+- name: Create the shadow directory if it does not exist
+  file:
+    path: /root/shadow
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: unzip shadow tar
+  unarchive:
+    src: /root/shadow.tar
+    dest: /root/shadow
+    remote_src: true
 
 
 - name: unzip cyrus-sasl tar
@@ -121,6 +153,17 @@
     src: /root/linux-pam.tar.gz
     dest: /root/linux-pam
     remote_src: true
+
+
+- name: configure the shadow source
+  command: chdir=/root/shadow/shadow-4.1.4.2/ ./configure --prefix=/ --with-libpam
+
+- name: make the shadow source
+  command: chdir=/root/shadow/shadow-4.1.4.2/ make
+
+- name: make install the shadow source
+  command: chdir=/root/shadow/shadow-4.1.4.2/ make install
+
 
 - name: configure the cyrus-sasl source
   command: chdir=/root/cyrus-sasl/cyrus-sasl-2.1.23/ ./configure --enable-anon --enable-pam --enable-plain --enable-login \
@@ -183,6 +226,7 @@
     - { regexp: '^#GSSAPIAuthentication no', line: 'GSSAPIAuthentication yes' }
     - { regexp: '^#GSSAPICleanupCredentials yes', line: 'GSSAPICleanupCredentials yes' }
 
+#ToDo: KerberosAuthentication yes, UsePAM no
 
 - name: run ssh with sshd_config
   command: /usr/local/sbin/sshd -t -f /usr/local/etc/sshd_config
