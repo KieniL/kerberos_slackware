@@ -32,6 +32,13 @@
     dest: ./shadow.tar.xz
   delegate_to: 127.0.0.1
 
+- name: download pam-krb5
+  get_url:
+    url: https://sourceforge.net/projects/pam-krb5/files/latest/download
+    dest: ./pam-krb5.tar.gz
+  delegate_to: 127.0.0.1
+
+
 - name: unzip the cyrus-sasl.tar.xz to get the tar
   command: xz -d ./cyrus-sasl.tar.xz
   delegate_to: 127.0.0.1
@@ -42,6 +49,13 @@
   delegate_to: 127.0.0.1
   ignore_errors: true
 
+- name: copy pam-krb5.tar to remote machine
+  copy:
+    src: ./pam-krb5.tar.gz
+    dest: /root/pam-krb5.tar.gz
+    owner: root
+    group: root
+    mode: 0644
 
 - name: copy ssh.tar to remote machine
   copy:
@@ -83,6 +97,14 @@
     group: root
     mode: 0644
 
+- name: Create the pam-krb5 directory if it does not exist
+  file:
+    path: /root/pam-krb5
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
 - name: Create the ssh directory if it does not exist
   file:
     path: /root/ssh
@@ -123,6 +145,14 @@
     owner: root
     group: root
 
+
+
+- name: unzip pam-krb5 tar
+  unarchive:
+    src: /root/pam-krb5.tar.gz
+    dest: /root/pam-krb5
+    remote_src: true
+
 - name: unzip shadow tar
   unarchive:
     src: /root/shadow.tar
@@ -154,16 +184,23 @@
     dest: /root/linux-pam
     remote_src: true
 
+- name: configure the pam source
+  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ ./configure --libdir=/lib --disable-static --enable-shared
+
+- name: make the pam source
+  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ make
+
+- name: make install the pam source
+  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ make install
 
 - name: configure the shadow source
-  command: chdir=/root/shadow/shadow-4.1.4.2/ ./configure --prefix=/ --with-libpam
+  command: chdir=/root/shadow/shadow-4.1.4.2/ ./configure --prefix=/ --with-libpam --sysconfdir=/etc --mandir=/usr/man   --docdir=/usr/doc/shadow-4.1.4.2 --disable-shared--without-libcrack --build=i686-slackware-linux
 
 - name: make the shadow source
   command: chdir=/root/shadow/shadow-4.1.4.2/ make
 
 - name: make install the shadow source
   command: chdir=/root/shadow/shadow-4.1.4.2/ make install
-
 
 - name: configure the cyrus-sasl source
   command: chdir=/root/cyrus-sasl/cyrus-sasl-2.1.23/ ./configure --enable-anon --enable-pam --enable-plain --enable-login \
@@ -181,15 +218,6 @@
 - name: make install the cyrus-sasl source
   command: chdir=/root/cyrus-sasl/cyrus-sasl-2.1.23/ make install
 
-- name: configure the pam source
-  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ ./configure
-
-- name: make the pam source
-  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ make
-
-- name: make install the pam source
-  command: chdir=/root/linux-pam/Linux-PAM-1.1.2/ make install
-
 - name: configure the openssl source
   command: chdir=/root/openssl/openssl-1.0.2/ ./config
 
@@ -200,7 +228,7 @@
   command: chdir=/root/openssl/openssl-1.0.2/ make install
 
 - name: configure the ssh source
-  command: chdir=/root/ssh/openssh-5.5p1/ ./configure --with-kerberos5
+  command: chdir=/root/ssh/openssh-5.5p1/ ./configure --with-kerberos5 --mandir=/usr/man --sysconfdir=/etc/ssh --with-pam --with-md5-passwords --with-tcp-wrappers --with-default-path=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin --with-privsep-path=/var/empty --with-privsep-user=sshd --build=i686-slackware-linux
 
 - name: make the ssh source
   command: chdir=/root/ssh/openssh-5.5p1/ make
@@ -208,14 +236,25 @@
 - name: make install the ssh source
   command: chdir=/root/ssh/openssh-5.5p1/ make install
 
-- name: add the gssapi authentiction to local sshd_config 
-  lineinfile:
-    dest: /usr/local/etc/sshd_config
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  loop:
-    - { regexp: '^#GSSAPIAuthentication no', line: 'GSSAPIAuthentication yes' }
-    - { regexp: '^#GSSAPICleanupCredentials yes', line: 'GSSAPICleanupCredentials yes' }
+- name: configure the pam-krb5 source
+  command: chdir=/root/pam-krb5/pam_krb5_snap-2003.06.01/ ./configure --prefix=/usr --libdir=/lib
+
+- name: make the pam-krb5 source
+  command: chdir=/root/pam-krb5/pam_krb5_snap-2003.06.01/ make
+
+- name: make install the pam-krb5 source
+  command: chdir=/root/pam-krb5/pam_krb5_snap-2003.06.01/ make install
+
+
+# - name: add the gssapi authentiction to local sshd_config 
+#   lineinfile:
+#     dest: /usr/local/etc/sshd_config
+#     regexp: "{{ item.regexp }}"
+#     line: "{{ item.line }}"
+#   loop:
+#     - { regexp: '^#GSSAPIAuthentication no', line: 'GSSAPIAuthentication yes' }
+#     - { regexp: '^#GSSAPICleanupCredentials yes', line: 'GSSAPICleanupCredentials yes' }
+#     - { regexp: '^#UsePAM no', line: 'UsePAM yes' }
 
 - name: add the gssapi authentiction to etc sshd_config 
   lineinfile:
@@ -225,11 +264,11 @@
   loop:
     - { regexp: '^#GSSAPIAuthentication no', line: 'GSSAPIAuthentication yes' }
     - { regexp: '^#GSSAPICleanupCredentials yes', line: 'GSSAPICleanupCredentials yes' }
+    - { regexp: '^#UsePAM no', line: 'UsePAM yes' }
 
-#ToDo: KerberosAuthentication yes, UsePAM no
 
 - name: run ssh with sshd_config
-  command: /usr/local/sbin/sshd -t -f /usr/local/etc/sshd_config
+  command: /usr/local/sbin/sshd -t -f /etc/ssh/sshd_config
 
 
 - name: copy the new sshd
@@ -250,17 +289,121 @@
     mode: 0755
     remote_src: true
 
-- name: Reboot immediately
-  shell: "reboot"
-  async: 1
-  poll: 0
+- name: comment out faillog in login.defs 
+  lineinfile:
+    dest: /etc/login.defs
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^FAILLOG_ENAB		yes', line: '#FAILLOG_ENAB		yes' }
+    - { regexp: '^LASTLOG_ENAB		yes', line: '#LASTLOG_ENAB		yes' }
+    - { regexp: '^MAIL_CHECK_ENAB     yes', line: '#MAIL_CHECK_ENAB     yes' }
+    - { regexp: '^OBSCURE_CHECKS_ENAB yes', line: '#OBSCURE_CHECKS_ENAB yes' }
+    - { regexp: '^PORTTIME_CHECKS_ENAB    yes', line: '#PORTTIME_CHECKS_ENAB    yes' }
+    - { regexp: '^QUOTAS_ENAB     yes', line: '#QUOTAS_ENAB     yes' }
+    - { regexp: '^MOTD_FILE   /etc/motd', line: '#MOTD_FILE   /etc/motd' }
+    - { regexp: '^FTMP_FILE   /var/log/btmp', line: '#FTMP_FILE   /var/log/btmp' }
+    - { regexp: '^NOLOGINS_FILE   /etc/nologin', line: '#NOLOGINS_FILE   /etc/nologin' }
+    - { regexp: '^ENV_HZ      HZ=100', line: '#ENV_HZ      HZ=100' }
+    - { regexp: '^PASS_MIN_LEN    5', line: '#PASS_MIN_LEN    5' }
+    - { regexp: '^SU_WHEEL_ONLY   no', line: '#SU_WHEEL_ONLY   no' }
+    - { regexp: '^CRACKLIB_DICTPATH  /var/cache/cracklib/cracklib_dict', line: '#CRACKLIB_DICTPATH  /var/cache/cracklib/cracklib_dict' }
+    - { regexp: '^PASS_CHANGE_TRIES  5', line: '#PASS_CHANGE_TRIES  5' }
+    - { regexp: '^PASS_ALWAYS_WARN    yes', line: '#PASS_ALWAYS_WARN    yes' }
+    - { regexp: '^CHFN_AUTH       yes', line: '#CHFN_AUTH       yes' }
+    - { regexp: '^ENVIRON_FILE    /etc/environment', line: '#ENVIRON_FILE    /etc/environment' }
 
-- name: Wait for the reboot to complete if there was a change.
-  wait_for_connection:
-    connect_timeout: 20
-    sleep: 5
-    delay: 20
-    timeout: 300
+
+- name: Create the /etc/pam.d/other file if it does not exist
+  file:
+    path: /etc/pam.d/other
+    state: touch
+    mode: 0644
+    owner: root
+    group: root
+
+- name: copy the common-auth file
+  copy:
+    src: "{{ role_path }}/files/common-auth"
+    dest: /etc/pam.d/common-auth
+    mode: 0644
+
+# vi /etc/pam.d/common-account
+- name: copy the common-account file
+  copy:
+    src: "{{ role_path }}/files/common-account"
+    dest: /etc/pam.d/common-account
+    mode: 0644
+
+# vi /etc/pam.d/common-password
+- name: copy the common-password file
+  copy:
+    src: "{{ role_path }}/files/common-password"
+    dest: /etc/pam.d/common-password
+    mode: 0644
+
+
+# vi /etc/pam.d/common-session
+- name: copy the common-session file
+  copy:
+    src: "{{ role_path }}/files/common-session"
+    dest: /etc/pam.d/common-session
+    mode: 0644
+
+# vi /etc/pam.d/passwd
+- name: copy the common-passwd file
+  copy:
+    src: "{{ role_path }}/files/passwd"
+    dest: /etc/pam.d/common-passwd
+    mode: 0644
+
+
+# vi /etc/pam.d/su
+- name: copy the common-su file
+  copy:
+    src: "{{ role_path }}/files/su"
+    dest: /etc/pam.d/su
+    mode: 0644 
+
+
+# vi /etc/pam.d/login
+- name: copy the common-auth file
+  copy:
+    src: "{{ role_path }}/files/login"
+    dest: /etc/pam.d/login
+    mode: 0644
+
+- name: copy the login to sshd file
+  copy:
+    src: /etc/pam.d/login
+    dest: /etc/pam.d/sshd
+    mode: 0644
+    remote_src: yes
+
+
+
+- name: Add the user "{{kerberos_principal_name}}" with a specific uid and a primary group of 'users'
+  user:
+    name: "{{kerberos_principal_name}}"
+    password: "{{ kerberos_principal_password | password_hash('sha512') }}"
+    comment: "{{kerberos_principal_name}}"
+    uid: 1040
+    group: users
+
+- name: restart ssh
+  command: /etc/rc.d/rc.sshd restart
+
+#- name: Reboot immediately
+#  shell: "reboot"
+#  async: 1
+#  poll: 0
+
+#- name: Wait for the reboot to complete if there was a change.
+#  wait_for_connection:
+#    connect_timeout: 20
+#    sleep: 5
+#    delay: 20
+#    timeout: 300
 
 # - name: run the SlackBuild
 #   command: chdir=/root/ssh/openssh-krb5/ sh openssh-krb5.SlackBuild

@@ -9,13 +9,13 @@ kerb01
 ssh01
 
 [slackware:vars]
-ansible_host=192.168.56.33
+ansible_host=itsec
 ansible_python_interpreter=/usr/local/bin/python3.7
 ansible_user=root
 ansible_password=root
 ansible_ssh_common_args=" -oKexAlgorithms=+diffie-hellman-group1-sha1"
 kerberos_password = 1234567
-kerberos_principal_password = Test1234567
-kerberos_principal_name = Test
+kerberos_principal_password = Test123456
+kerberos_principal_name = lukas
 
 

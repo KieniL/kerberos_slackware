@@ -38,6 +38,9 @@ make install
 # Structure of the inventory
 there is one host which contains both roles
 # Usage
+Add the ip address to /etc/hosts like so:
+192.168.56.33 itsec
+
 ansible-playbook -i inventory main.yml
 
 to only run the playbooks against a specific hostgroup:
