@@ -1,2 +1,2 @@
-account         sufficient      pam_unix.so
+account         sufficient      pam_unix.so broken_shadow
 account         required        pam_permit.so
