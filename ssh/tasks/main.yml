@@ -228,7 +228,7 @@
   command: chdir=/root/openssl/openssl-1.0.2/ make install
 
 - name: configure the ssh source
-  command: chdir=/root/ssh/openssh-5.5p1/ ./configure --with-kerberos5 --mandir=/usr/man --sysconfdir=/etc/ssh --with-pam --with-md5-passwords --with-tcp-wrappers --with-default-path=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin --with-privsep-path=/var/empty --with-privsep-user=sshd --build=i686-slackware-linux
+  command: chdir=/root/ssh/openssh-5.5p1/ ./configure --with-kerberos5=/usr/kerberos --enable-kerberos-tgt-passing --mandir=/usr/man --sysconfdir=/etc/ssh --with-pam --with-md5-passwords --with-tcp-wrappers --with-default-path=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin --with-privsep-path=/var/empty --with-privsep-user=sshd --build=i686-slackware-linux
 
 - name: make the ssh source
   command: chdir=/root/ssh/openssh-5.5p1/ make

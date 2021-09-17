@@ -206,8 +206,24 @@
   command: kdb5_util create -s -P {{kerberos_password}}
   ignore_errors: true
 
+- name: add policy
+  command: kadmin.local -q "addpol hosts"
+  ignore_errors: true
+
+- name: add host
+  command: kadmin.local -q "ank -randkey -policy hosts host/vmwarebase"
+  ignore_errors: true
+
+- name: add host into keytabfile
+  command: kadmin.local -q "ktadd -norandkey /etc/krb5.keytab host/vmwarebase"
+  ignore_errors: true
+
 - name: create principal
   command: kadmin.local -q "addprinc -pw {{kerberos_principal_password}} {{kerberos_principal_name}}"
+  ignore_errors: true
+
+- name: add principal into keytabfile
+  command: kadmin.local -q "ktadd -norandkey /etc/krb5.keytab {{kerberos_principal_name}}"
   ignore_errors: true
 
 - name: start krb5 service
