@@ -39,7 +39,7 @@ make install
 there is one host which contains both roles
 # Usage
 Add the ip address to /etc/hosts like so:
-192.168.56.33 itsec
+192.168.56.33 vmwarebase
 
 ansible-playbook -i inventory main.yml
 
