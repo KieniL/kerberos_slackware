@@ -107,7 +107,7 @@
   set_fact:
     krbversion: 1.8.3
 
-- name: download kerberos from web mit edu to control machine (remote does not have internet)
+- name: download kerberos from web mit edu to control machine
   get_url:
     url: https://web.mit.edu/kerberos/dist/krb5/1.8/krb5-{{krbversion}}-signed.tar
     dest: ./kerberos.tar
@@ -135,7 +135,7 @@
 
 - name: configure the krb source
   #command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --libdir=/usr/lib64 --sysconfdir=/etc --localstatedir=/var/krb5 --datarootdir=/usr/share/krb5
-  command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir=/usr/kerberos/man --enable-dns-for-realm --build=i486-slackware-linux
+  command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir=/usr/kerberos/man --build=i486-slackware-linux
 
 - name: make the krb source
   command: chdir=/root/krb5-{{krbversion}}/src/ make

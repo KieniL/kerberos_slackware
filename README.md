@@ -17,7 +17,7 @@ For the ssh connection an additional parameter is needed to negotiate the connec
 ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 root@192.168.56.18
 
 You also need to install Python on slackware:
-download python on the host (since i don't have internet access) and extract it:
+download python on the host (since i don't wanted to have internet access) and extract it:
 <code>
 wget https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tar.xz
 tar -xf Python-3.7.2.tar.xz

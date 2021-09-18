@@ -34,7 +34,7 @@
 
 - name: download pam-krb5
   get_url:
-    url: https://sourceforge.net/projects/pam-krb5/files/latest/download
+    url: https://archives.eyrie.org/software/kerberos/pam-krb5-4.10.tar.gz
     dest: ./pam-krb5.tar.gz
   delegate_to: 127.0.0.1
 
@@ -237,13 +237,13 @@
   command: chdir=/root/ssh/openssh-5.5p1/ make install
 
 - name: configure the pam-krb5 source
-  command: chdir=/root/pam-krb5/pam_krb5_snap-2003.06.01/ ./configure --prefix=/usr --libdir=/lib
+  command: chdir=/root/pam-krb5/pam-krb5-4.10/ ./configure --prefix=/usr --libdir=/lib
 
 - name: make the pam-krb5 source
-  command: chdir=/root/pam-krb5/pam_krb5_snap-2003.06.01/ make
+  command: chdir=/root/pam-krb5/pam-krb5-4.10/ make
 
 - name: make install the pam-krb5 source
-  command: chdir=/root/pam-krb5/pam_krb5_snap-2003.06.01/ make install
+  command: chdir=/root/pam-krb5/pam-krb5-4.10/ make install
 
 
 # - name: add the gssapi authentiction to local sshd_config 
@@ -350,11 +350,11 @@
     dest: /etc/pam.d/common-session
     mode: 0644
 
-# vi /etc/pam.d/passwd
+# vi /etc/pam.d/common-passwd
 - name: copy the common-passwd file
   copy:
     src: "{{ role_path }}/files/passwd"
-    dest: /etc/pam.d/common-passwd
+    dest: /etc/pam.d/passwd
     mode: 0644
 
 
@@ -393,17 +393,17 @@
 - name: restart ssh
   command: /etc/rc.d/rc.sshd restart
 
-#- name: Reboot immediately
-#  shell: "reboot"
-#  async: 1
-#  poll: 0
+- name: Reboot immediately
+  shell: "reboot"
+  async: 1
+  poll: 0
 
-#- name: Wait for the reboot to complete if there was a change.
-#  wait_for_connection:
-#    connect_timeout: 20
-#    sleep: 5
-#    delay: 20
-#    timeout: 300
+- name: Wait for the reboot to complete if there was a change.
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 20
+    timeout: 300
 
 # - name: run the SlackBuild
 #   command: chdir=/root/ssh/openssh-krb5/ sh openssh-krb5.SlackBuild
