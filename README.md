@@ -94,3 +94,10 @@ Renew the ticket with kinit PRINCIPALNAME -R
 
 Then you can ssh into the machine with the ticket provided:
 ssh -k vmwarebase
+
+
+# Whats the process?
+
+A kerberos services is hosted in the network which exposes port 88
+The clients connects to port 88 on the server to request the ticket
+After the client authenticated itself the services which are integrated with kerberos can be used with a new authentication provided.
