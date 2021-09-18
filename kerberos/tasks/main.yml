@@ -134,7 +134,6 @@
     remote_src: true
 
 - name: configure the krb source
-  #command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --libdir=/usr/lib64 --sysconfdir=/etc --localstatedir=/var/krb5 --datarootdir=/usr/share/krb5
   command: chdir=/root/krb5-{{krbversion}}/src/ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir=/usr/kerberos/man --build=i486-slackware-linux
 
 - name: make the krb source

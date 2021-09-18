@@ -2,8 +2,6 @@
 # tasks file for ssh
 - name: download ssh
   get_url:
-    # url: https://slackware.osuosl.org/slackware-14.1/patches/source/openssh/openssh-7.4p1.tar.gz
-    # url: https://slackbuilds.org/slackbuilds/14.1/network/openssh-krb5.tar.gz
     url: https://mirrors.xmission.com/slackware/slackware-13.1/source/n/openssh/openssh-5.5p1.tar.gz
     dest: ./ssh.tar.gz
   delegate_to: 127.0.0.1
@@ -245,17 +243,6 @@
 - name: make install the pam-krb5 source
   command: chdir=/root/pam-krb5/pam-krb5-4.10/ make install
 
-
-# - name: add the gssapi authentiction to local sshd_config 
-#   lineinfile:
-#     dest: /usr/local/etc/sshd_config
-#     regexp: "{{ item.regexp }}"
-#     line: "{{ item.line }}"
-#   loop:
-#     - { regexp: '^#GSSAPIAuthentication no', line: 'GSSAPIAuthentication yes' }
-#     - { regexp: '^#GSSAPICleanupCredentials yes', line: 'GSSAPICleanupCredentials yes' }
-#     - { regexp: '^#UsePAM no', line: 'UsePAM yes' }
-
 - name: add the gssapi authentiction to etc sshd_config 
   lineinfile:
     dest: /etc/ssh/sshd_config
@@ -328,14 +315,12 @@
     dest: /etc/pam.d/common-auth
     mode: 0644
 
-# vi /etc/pam.d/common-account
 - name: copy the common-account file
   copy:
     src: "{{ role_path }}/files/common-account"
     dest: /etc/pam.d/common-account
     mode: 0644
 
-# vi /etc/pam.d/common-password
 - name: copy the common-password file
   copy:
     src: "{{ role_path }}/files/common-password"
@@ -343,14 +328,12 @@
     mode: 0644
 
 
-# vi /etc/pam.d/common-session
 - name: copy the common-session file
   copy:
     src: "{{ role_path }}/files/common-session"
     dest: /etc/pam.d/common-session
     mode: 0644
 
-# vi /etc/pam.d/common-passwd
 - name: copy the common-passwd file
   copy:
     src: "{{ role_path }}/files/passwd"
@@ -358,7 +341,6 @@
     mode: 0644
 
 
-# vi /etc/pam.d/su
 - name: copy the common-su file
   copy:
     src: "{{ role_path }}/files/su"
@@ -366,7 +348,6 @@
     mode: 0644 
 
 
-# vi /etc/pam.d/login
 - name: copy the common-auth file
   copy:
     src: "{{ role_path }}/files/login"
@@ -407,22 +388,3 @@
 
 - name: start krb5 service
   command: /etc/rc.d/rc.krb5kdc start
-
-# - name: run the SlackBuild
-#   command: chdir=/root/ssh/openssh-krb5/ sh openssh-krb5.SlackBuild
-
-# - name: Create the openssh-krb5 directory if it does not exist
-#   file:
-#     path: /root/openssh-krb5
-#     state: directory
-#     mode: '0755'
-#     owner: root
-#     group: root
-
-# - name: unzip openssh-krb5 tar
-#   unarchive:
-#     src: /tmp/openssh-krb5-6.7p1-i486-1_SBo.tgz
-#     dest: /root/openssh-krb5
-#     remote_src: true
-
-  # /usr/local/sbin/sshd -t -f /usr/local/etc/sshd_config
