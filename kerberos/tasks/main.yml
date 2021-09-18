@@ -211,11 +211,11 @@
   ignore_errors: true
 
 - name: add host
-  command: kadmin.local -q "ank -randkey -policy hosts host/vmwarebase"
+  command: kadmin.local -q "ank -randkey -policy hosts host/vmwarebase.local"
   ignore_errors: true
 
 - name: add host into keytabfile
-  command: kadmin.local -q "ktadd -norandkey /etc/krb5.keytab host/vmwarebase"
+  command: kadmin.local -q "ktadd -norandkey /etc/krb5.keytab host/vmwarebase.local"
   ignore_errors: true
 
 - name: create principal

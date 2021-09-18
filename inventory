@@ -9,7 +9,7 @@ kerb01
 ssh01
 
 [slackware:vars]
-ansible_host=vmwarebase
+ansible_host=vmwarebase.local
 ansible_python_interpreter=/usr/local/bin/python3.7
 ansible_user=root
 ansible_password=root

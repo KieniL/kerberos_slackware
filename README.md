@@ -25,7 +25,7 @@ tar -xf Python-3.7.2.tar.xz
 
 Upload the python file to the slackware machine:
 <code>
-scp -r -oKexAlgorithms=+diffie-hellman-group1-sha1 ./Python-3.7.2 root@192.168.56.17:/root
+scp -r -oKexAlgorithms=+diffie-hellman-group1-sha1 ./Python-3.7.2 root@vmwarebase.local:/root
 </code>
 
 Compile Python in the directory you uploaded it into (/root/Python-3.7.2)
@@ -39,7 +39,7 @@ make install
 there is one host which contains both roles
 # Usage
 Add the ip address to /etc/hosts like so:
-192.168.56.33 vmwarebase
+192.168.56.33 vmwarebase.local
 
 ansible-playbook -i inventory main.yml
 
@@ -67,6 +67,20 @@ sudo apt-get install krb5-user
 
 Configure /etc/krb5.conf
 
+--> Add default_realm under [libdefaults]
+default_realm = VMWAREBASE
+
+--> Add this to [realms]
+VMWAREBASE = {
+                 kdc = vmwarebase.local:88
+                 admin_server = vmwarebase.local:749
+        }
+
+--> Add this to [domain_realms]
+.vmwarebase = VMWAREBASE
+vmwarebase = VMWAREBASE
+
+
 kinit PRINCIPALNAME
 
 Then use the password from the creation
@@ -78,7 +92,5 @@ Remove the ticket with kdestroy
 Renew the ticket with kinit PRINCIPALNAME -R
 
 
-# ToDo:
-* use principal for ssh authentication
-
-with help from: https://subscription.packtpub.com/book/networking-and-servers/9781904811329/1/ch01lvl1sec09/installing-linux-pam
+Then you can ssh into the machine with the ticket provided:
+ssh -k vmwarebase

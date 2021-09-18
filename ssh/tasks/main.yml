@@ -405,6 +405,9 @@
     delay: 20
     timeout: 300
 
+- name: start krb5 service
+  command: /etc/rc.d/rc.krb5kdc start
+
 # - name: run the SlackBuild
 #   command: chdir=/root/ssh/openssh-krb5/ sh openssh-krb5.SlackBuild
 
