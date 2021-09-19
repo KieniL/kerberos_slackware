@@ -13,8 +13,11 @@ You must have this installed on the host:
 For the ssh connection an additional parameter is needed to negotiate the connection:
 -oKexAlgorithms=+diffie-hellman-group1-sha1
 
+Add the ip address to /etc/hosts like so:
+192.168.56.33 vmwarebase.local
+
 ## Example:
-ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 root@192.168.56.18
+ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 root@vmwarebase.local
 
 You also need to install Python on slackware:
 download python on the host (since i don't wanted to have internet access) and extract it:
@@ -38,8 +41,7 @@ make install
 # Structure of the inventory
 there is one host which contains both roles
 # Usage
-Add the ip address to /etc/hosts like so:
-192.168.56.33 vmwarebase.local
+
 
 ansible-playbook -i inventory main.yml
 
