@@ -1,2 +1,0 @@
-auth required pam_krb5.so
-account required pam_krb5.so
