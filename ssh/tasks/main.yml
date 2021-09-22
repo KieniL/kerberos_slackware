@@ -385,6 +385,3 @@
     sleep: 5
     delay: 20
     timeout: 300
-
-- name: start krb5 service
-  command: /etc/rc.d/rc.krb5kdc start

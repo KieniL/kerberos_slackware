@@ -172,6 +172,12 @@
     group: root
     mode: 0755
 
+- name: add krb5kdc file to rc.local to run on boot
+  lineinfile:
+    dest: /etc/rc.d/rc.local
+    line: /etc/rc.d/rc.krb5kdc start
+
+
 - name: trigger the haveged script restart
   command: /etc/rc.d/rc.haveged restart
   ignore_errors: true
