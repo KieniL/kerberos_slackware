@@ -61,7 +61,7 @@ It installs haveged and rng-tools to have more entropy for randomize data in ker
 You can see the entropy with this command:
 cat /proc/sys/kernel/random/entropy_avail
 
-It also generates a test principals (Test:Test1234567)
+It also generates a test principals (Lukas:Test1234567) --> set in inventory
 ## Obtain a ticket from client
 
 Have this installed:
@@ -103,3 +103,10 @@ ssh -k vmwarebase
 A kerberos services is hosted in the network which exposes port 88
 The clients connects to port 88 on the server to request the ticket
 After the client authenticated itself the services which are integrated with kerberos can be used with a new authentication provided.
+
+
+# Create a new user
+addprinc in kadmin.local
+adduser in bash
+
+Now kinit and then you can ssh
