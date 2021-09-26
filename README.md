@@ -110,3 +110,6 @@ addprinc in kadmin.local
 adduser in bash
 
 Now kinit and then you can ssh
+
+
+You don't need to add the user to keytab file (only the host is needed)
