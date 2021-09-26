@@ -82,8 +82,8 @@ VMWAREBASE = {
 .vmwarebase = VMWAREBASE
 vmwarebase = VMWAREBASE
 
-
-kinit PRINCIPALNAME
+With this command you can request a ticket with a lifetime of 1 minute
+kinit -l 1m PRINCIPALNAME
 
 Then use the password from the creation
 
